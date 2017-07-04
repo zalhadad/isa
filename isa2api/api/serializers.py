@@ -24,17 +24,26 @@ page_of_sessions = api.inherit('Page of sessions', pagination, {
 
 node = api.model('Node', {
     'id': fields.String(description='Node unique identifier'),
+    'label': fields.String(description='Node label'),
+    'group': fields.String(description='Node group'),
 
 })
 edge = api.model('Edge', {
     'from': fields.String(description='source node identifier'),
     'to': fields.String(description='target node identifier'),
-    'duration': fields.String(description='Node unique identifier'),
+    'label': fields.String(description='Edge label'),
+    'value': fields.String(description='Edge value')
 
+})
+
+graphItems = api.model('Graph nodes & edges', {
+    'nodes': fields.List(fields.Nested(node)),
+    'edges': fields.List(fields.Nested(edge))
 })
 sessionHistory = api.model('Session inforamtion', {
     'id': fields.String(readOnly=True, description='The unique identifier of session'),
     'nodes': fields.List(fields.Nested(node)),
     'edges': fields.List(fields.Nested(edge))
 })
+
 

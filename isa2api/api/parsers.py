@@ -11,4 +11,24 @@ session_arguments.add_argument('caller', type=str, required=False, help='Caller 
 session_arguments.add_argument('called', type=str, required=False, help='Called number')
 session_arguments.add_argument('fromDate', type=str, required=False, default=yesterday.isoformat(), help='Iso format')
 session_arguments.add_argument('toDate', type=str, required=False , default=date.today().isoformat(),help='Iso format')
-session_arguments.add_argument('server', type=int, required=False, default=-1, help='Server id')
+session_arguments.add_argument('server', type=int, required=True, help='Server id')
+session_arguments.add_argument('sort', type=str, required=False, default='timestamp', choices=['timestamp', 'id', 'caller', 'called'], help='column to order by')
+session_arguments.add_argument('order', type=str, required=False, default='desc', choices=['asc', 'desc'], help='order direction')
+
+
+fromTo_arguments = reqparse.RequestParser()
+fromTo_arguments.add_argument('server', type=int, required=True, default=-1, help='Server id')
+fromTo_arguments.add_argument('fromDate', type=str, required=False, default=yesterday.isoformat(), help='Iso format')
+fromTo_arguments.add_argument('toDate', type=str, required=False , default=date.today().isoformat(),help='Iso format')
+
+
+login_arguments = reqparse.RequestParser()
+login_arguments.add_argument('username', type=str, required=True, help='username', location='json')
+login_arguments.add_argument('password', type=str, required=True,  help='password', location='json')
+
+
+token_arguments = reqparse.RequestParser()
+token_arguments.add_argument('token', type=str, required=False, help='API Token')
+
+paths_arguments = reqparse.RequestParser()
+paths_arguments.add_argument('limit', type=str, required=False, help='Max number of paths')

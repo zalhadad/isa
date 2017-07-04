@@ -1,0 +1,53 @@
+nodes = [dict({'id' : x[0],'label' : x[2], 'group' : x[1]}) for x in history.values]
+history.reset_index(inplace=True)
+sources = history['timestamp'][0:-1].values
+targets = history['timestamp'][1:].values
+durations = history['timestamp'].diff()[1::].values.astype('timedelta64[ms]')
+edgesList = list(zip(sources, targets, durations))
+self.edges = [dict({'from' : x[0], 'to' : x[1], 'duration' : x[2]}) for x in edgesList]
+
+history = pd.read_sql(sql,connection,params={'id' :'699994122CON20170620CON44506308' })
+history = pd.melt(history,id_vars='timestamp',value_vars=['node','info'],var_name='type',value_name='node').replace('',np.nan).dropna()
+history.set_index(history.groupby(history.timestamp.values.astype('datetime64[ms]')).cumcount() + history.timestamp.values.astype('datetime64[ms]').astype('datetime64[us]'),inplace=True)
+history.sort_index(inplace=True)
+history.reset_index(inplace=True)
+history.drop('timestamp',1,inplace=True)
+history.columns =['timestamp', 'group', 'label']
+history['id'] = history['timestamp'].apply(lambda x : pd.to_datetime(x).isoformat()).values
+
+2017-06-20T13:20:36'
+['2017-06-20T13:20:41.001000',
+'2017-06-20T13:20:47.001000',
+'2017-06-20T13:20:58.001000',
+'2017-06-20T13:21:13.001000',
+'2017-06-20T13:21:31.001000',
+'2017-06-20T13:22:06.001000',
+'2017-06-20T13:22:20.001000',
+'2017-06-20T13:22:26.001000',
+'2017-06-20T13:22:37.001000']
+
+sql = "SELECT timestamp,node,info FROM sessions_history WHERE session=%(id)s AND (node <> '' "
+sql += " )  ORDER BY timestamp"
+
+
+
+import pandas as pd
+import psycopg2
+import psycopg2.extras
+
+DATABASE = " host='localhost' dbname='stat' user='postgres' password='postgres' "
+connection = psycopg2.connect(DATABASE,cursor_factory=psycopg2.extras.RealDictCursor)
+
+sql = "SELECT timestamp,node,session FROM sessions_history WHERE timestamp::date between %(f)s and %(t)s  and (node <> '' OR (info <> '' AND info <> 'endOfWavFile') ) ORDER BY timestamp"
+history = pd.read_sql(sql,connection,params={'f' : '2017-01-01', 't' : '2017-01-01'},index_col='timestamp')
+
+b = history.groupby('session').apply(lambda x : pd.concat([x.node,pd.Series('',index=[x.index.values.max()+1])],axis=1))
+c = pd.DataFrame({'f' : b.node[0:-1].values,'t':b.node[1:].values}).dropna()
+d = (c.groupby(['f','t']).size() / c.index.size).reset_index()
+
+var nview = new vis.DataView(nodes, {
+  filter: function (n) {
+    return edges.get({filter : function (e){ return e.to == n.id || e.from == n.id}}).length > 0
+  }});
+
+
