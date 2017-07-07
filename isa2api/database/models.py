@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import ast
 
 import isa2api.database as db
 
@@ -46,17 +47,19 @@ class GlobalGraph():
     
     def __init__(self,params):
         sql="SELECT h.timestamp,h.node,h.session FROM sessions_history h inner join sessions s on h.session = s.id"
-        sql += " WHERE s.server = %(server)s AND h.timestamp::date between %(fromDate)s::date AND %(toDate)s::date AND h.timestamp between %(fromDate)s AND %(toDate)s AND (node<> '') "       
+        sql += " WHERE s.server = %(server)s AND s.timestamp::date between %(fromDate)s::date AND %(toDate)s::date AND s.timestamp between %(fromDate)s AND %(toDate)s AND (node<> '') ORDER BY h.session,h.timestamp"       
         history = pd.read_sql(sql,db.connection,params=params)
-        fromNodes = history.groupby('session').apply(lambda x : x[0:-1])
-        toNodes = history.groupby('session').apply(lambda x : x[1:])
-        edges = pd.DataFrame(list(zip(fromNodes.node.values,toNodes.node.values))).rename(columns={ 0: 'from',1:'to'})
-        self.edges = ((edges.groupby(['from','to']).size() / edges.index.size)).reset_index().rename(columns={ 0: 'value'})
+        fromNodes = history.groupby('session').apply(lambda x : pd.Series(['BEGIN_NODE'] + list(x.node.values)))
+        toNodes = history.groupby('session').apply(lambda x : pd.Series(list(x.node.values) + ['END_NODE']))
+        edges = pd.DataFrame(list(zip(fromNodes.values,toNodes.values))).rename(columns={ 0: 'from',1:'to'})
+        self.edges = (edges.groupby(['from','to']).size() / history.session.unique().size).reset_index().rename(columns={ 0: 'value'})
         float_formatter = lambda x: "%.2f%%" % x
         self.edges['label'] = (self.edges['value']*100).apply(float_formatter)
         self.edges = json.loads(self.edges.to_json(orient='records'))
         nodes = history.node.unique()
-        self.nodes = json.loads(pd.DataFrame({"id" : nodes, "label" : nodes ,"group" : "node"}).to_json(orient='records'))
+        nodes = pd.DataFrame({"id" : nodes, "label" : nodes ,"group" : "node"})
+        nodes = nodes.append([{"label" : "BEGIN","group" : "BEGIN","id" : "BEGIN_NODE"}, {"label" : "END","group" : "END","id" : "END_NODE"}])
+        self.nodes = json.loads(nodes.to_json(orient='records'))
     def get(self):
         return {'nodes' : self.nodes , 'edges' : self.edges}
 
@@ -68,47 +71,40 @@ class GlobalGraph():
 class Paths():
     
     def __init__(self,params):
-        """
+        
         sql="SELECT h.timestamp,h.node,h.session FROM sessions_history h inner join sessions s on h.session = s.id"
-        sql += " WHERE s.server = %(server)s AND h.timestamp::date between %(fromDate)s::date AND %(toDate)s::date AND h.timestamp between %(fromDate)s AND %(toDate)s AND (node<> '') "       
+        sql += " WHERE s.server = %(server)s AND s.timestamp::date between %(fromDate)s::date AND %(toDate)s::date AND s.timestamp between %(fromDate)s AND %(toDate)s AND (node<> '') ORDER BY h.session,h.timestamp"       
         history = pd.read_sql(sql,db.connection,params=params)
-        h2 = history.groupby('session').apply(lambda x : x.node.cumsum()).reset_index().set_index('timestamp')
-        parcours = pd.DataFrame(history.groupby('session').apply(lambda x :str(list(x.node)))).rename(columns={ 0: 'parcours'})
-        n_parcours = parcours.groupby('parcours').size().nlargest(10)
 
+
+
+        history['nId'] = history['node'] + history.groupby(['node','session']).cumcount().astype(str)
+
+        from_nodes = history.groupby('session').apply(lambda x : pd.Series(['BEGIN_NODE'] + list(x.nId.values)))
+        to_nodes = history.groupby('session').apply(lambda x : pd.Series(list(x.nId.values) + ['END_NODE']))
+        edges = pd.DataFrame(list(zip(from_nodes.values,to_nodes.values))).rename(columns={ 0: 'from',1:'to'})
+
+
+        parcours = pd.DataFrame(history.groupby('session').apply(lambda x :str(['BEGIN_NODE'] + list(x['nId']) + ['END_NODE'] ))).rename(columns={ 0: 'parcours'})
+        n_parcours = parcours.groupby('parcours').size().nlargest(params.get('limit'))
         p = [ast.literal_eval(x) for x in n_parcours.index]
         c = [list(zip(x[0:-1], x[1:])) for x in p ]
         c = [item for sublist in c for item in sublist]
+        b = pd.DataFrame(c).rename(columns={0 : 'from',1:'to'})
 
-
-
-        fromNodes = history.groupby('session').apply(lambda x : x[0:-1])
-        toNodes = history.groupby('session').apply(lambda x : x[1:])
-        w= pd.DataFrame(list(zip(fromNodes.node.values,toNodes.node.values))).rename(columns={ 0: 'from',1:'to'})
-
-
-        start = t.time()
-        b = history.groupby('session').apply(lambda x : list(zip(x[0:-1].node.values,x[1:].node.values)))
-        b = pd.DataFrame([item for sublist in b for item in sublist]).rename(columns={0 : 'from',1:'to'})
-
-
-
-        self.edges = (w.merge(a,how='right').groupby(['from','to']).size() / w.index.size).reset_index()
+        e = (edges.merge(b.drop_duplicates(),how='right',on=['from','to']).groupby(['from','to']).size() / history.session.unique().size).reset_index().rename(columns={ 0: 'value'})
 
         float_formatter = lambda x: "%.2f%%" % x
-        self.edges['label'] = (self.edges['value']*100).apply(float_formatter)
-        self.edges = json.loads(self.edges.to_json(orient='records'))
-        nodes = history.node.unique()
-        self.nodes = json.loads(pd.DataFrame({"id" : nodes, "label" : nodes ,"group" : "node"}).to_json(orient='records'))
-        """
+        e['label'] = (e['value']*100).apply(float_formatter)
+        self.edges = json.loads(e.to_json(orient='records'))
+        nodes = history.merge(pd.DataFrame(pd.melt(b,value_vars=['from','to']).value.unique()).rename(columns={0 : 'nId'}),on='nId',how='inner')[['nId','node']].rename(columns={'nId':'id','node':'label'})
+        nodes['group'] = 'node'
+        nodes = nodes.append([{"label" : "BEGIN","group" : "BEGIN","id" : "BEGIN_NODE"}, {"label" : "END","group" : "END","id" : "END_NODE"}]).drop_duplicates('id')
+        self.nodes = json.loads(nodes.to_json(orient='records'))
+    
     def get(self):
 
-       # return {'nodes' : self.nodes , 'edges' : self.edges}
-        import json
-        import os
-        with open(os.path.join(os.path.dirname(__file__), 'test.json')) as json_data:
-            return json.load(json_data)
-
+        return {'nodes' : self.nodes , 'edges' : self.edges}
 
     def __repr__(self):
         return self.data.to_json(orient='records')

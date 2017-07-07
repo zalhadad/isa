@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 ns = api.namespace('sessions', description='sessions related informations')
 
+
 @ns.route('/')
 @api.expect(token_arguments)
 class SessionsCtrl(Resource):
@@ -51,14 +52,13 @@ class HistoryOfSessions(Resource):
 @api.expect(token_arguments)
 @api.response(404, 'session not found.')
 class TopPaths(Resource):
-    @api.expect(fromTo_arguments)
     @api.expect(paths_arguments)
     @api.marshal_with(graphItems)
     def get(self):
         """
         Returns paths graph step with specified filter.
         """
-        args = session_arguments.parse_args(request)
+        args = paths_arguments.parse_args(request)
         p = Paths(args)
         return p.get()
 

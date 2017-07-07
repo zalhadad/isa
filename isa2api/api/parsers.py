@@ -30,5 +30,5 @@ login_arguments.add_argument('password', type=str, required=True,  help='passwor
 token_arguments = reqparse.RequestParser()
 token_arguments.add_argument('token', type=str, required=False, help='API Token')
 
-paths_arguments = reqparse.RequestParser()
-paths_arguments.add_argument('limit', type=str, required=False, help='Max number of paths')
+paths_arguments = fromTo_arguments.copy()
+paths_arguments.add_argument('limit', type=int, required=False, default=10, help='Max number of paths')
