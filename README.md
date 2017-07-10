@@ -5,7 +5,7 @@
 All steps of [insert-data](https://www.forge.orange-labs.fr/plugins/git/isa2/insert-data) 
 
 ### Installation 
-- Install required libs by `pip3 install requirement.txt`
+- Install required libs by `pip3 install -r requirement.txt`
 
 - Set **Database credentials** in ***isa2api/setting.py***
 > You can change also other parameters if needed.
