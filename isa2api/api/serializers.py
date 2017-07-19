@@ -1,5 +1,5 @@
 from flask_restplus import fields
-from ..api.restplus import api
+from isa2api.api.restplus import api
 
 session = api.model('Session inforamtion', {
     'id': fields.String(readOnly=True, description='The unique identifier of session'),
@@ -40,10 +40,8 @@ graphItems = api.model('Graph nodes & edges', {
     'nodes': fields.List(fields.Nested(node)),
     'edges': fields.List(fields.Nested(edge))
 })
-sessionHistory = api.model('Session inforamtion', {
+session_history = api.model('Session steps', {
     'id': fields.String(readOnly=True, description='The unique identifier of session'),
     'nodes': fields.List(fields.Nested(node)),
     'edges': fields.List(fields.Nested(edge))
 })
-
-
