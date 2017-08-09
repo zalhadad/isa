@@ -1,6 +1,7 @@
 flask-restplus
 pandas
 psycopg2
+passlib
 SQLAlchemy
 graphviz
 
