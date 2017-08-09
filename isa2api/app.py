@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import logging.config
 
 from flask import Flask, Blueprint

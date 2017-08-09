@@ -4,7 +4,7 @@ from isa2api.settings import RESTPLUS_SUPER_SECRET
 from isa2api.settings import RESTPLUS_TOKEN_EXPIRE 
 
 
-class User:
+class Users:
 
     def __init__(self):
         self.s = Serializer(RESTPLUS_SUPER_SECRET,RESTPLUS_TOKEN_EXPIRE)
