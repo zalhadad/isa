@@ -7,8 +7,8 @@ from isa2api.api.ns.services import ns as servicesNs
 from isa2api.api.ns.servers import ns as serversNs
 from isa2api.api.ns.nodes import ns as nodesNs
 from isa2api.api.ns.jobs import ns as jobsNs
-from isa2api.api.ns.users import ns as usersNs 
-from isa2api.api.ns.auth import ns as authNs 
+from isa2api.api.ns.users import ns as usersNs
+from isa2api.api.ns.auth import ns as authNs
 from isa2api.api.ns.sessions import ns as sessionsNs
 from isa2api.api.ns.graphs import ns as graphsNs
 from isa2api.api.ns.reports import ns as reportsNs
@@ -20,7 +20,6 @@ log = logging.getLogger(__name__)
 
 
 def configure_app(flask_app):
-    flask_app.config['SERVER_NAME'] = settings.FLASK_SERVER_NAME
     flask_app.config['SWAGGER_UI_DOC_EXPANSION'] = settings.RESTPLUS_SWAGGER_UI_DOC_EXPANSION
     flask_app.config['RESTPLUS_VALIDATE'] = settings.RESTPLUS_VALIDATE
     flask_app.config['RESTPLUS_MASK_SWAGGER'] = settings.RESTPLUS_MASK_SWAGGER
@@ -30,7 +29,8 @@ def configure_app(flask_app):
 
 def initialize_app(flask_app):
     configure_app(flask_app)
-    blueprint = Blueprint('api', __name__, url_prefix=settings.RESTPLUS_API_PREFIX)
+    blueprint = Blueprint(
+        'api', __name__, url_prefix=settings.RESTPLUS_API_PREFIX)
     api.init_app(blueprint)
     api.add_namespace(servicesNs)
     api.add_namespace(serversNs)
@@ -46,14 +46,20 @@ def initialize_app(flask_app):
 
 def main():
     initialize_app(app)
-    log.info('>>>>> Starting server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
-    app.run(debug=settings.FLASK_DEBUG,host=settings.FLASK_HOST)
+    log.info('>>>>> Starting server <<<<<')
+    app.run(debug=settings.FLASK_DEBUG,
+            host=settings.FLASK_HOST, port=settings.FLASK_PORT)
+
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Expose-Headers', 'X-API-KEY')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-API-KEY')
+    response.headers.add('Access-Control-Allow-Headers',
+                         'Content-Type,X-API-KEY')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
+
+
 if __name__ == "__main__":
     main()

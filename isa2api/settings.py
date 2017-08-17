@@ -1,8 +1,7 @@
 # Flask settings
-FLASK_SERVER_NAME = 'localhost:8888'
 FLASK_DEBUG = True  # Do not use debug mode in production
-FLASK_HOST = 'localhost'  # Do not use debug mode in production
-
+FLASK_HOST = '0.0.0.0'
+FLASK_PORT = 8888
 # Flask-Restplus settings
 RESTPLUS_SWAGGER_UI_DOC_EXPANSION = 'list'
 RESTPLUS_SWAGGER_LANG = ['en', 'fr']
@@ -20,4 +19,4 @@ RESTPLUS_TOKEN_EXPIRE = 3600
 #DATABASE = 'postgres:///stat'
 
 # via TCP socket
-DATABASE = "postgres://postgres:postgres@localhost/isa"
+DATABASE = "postgres://isa:pass@localhost/isa"
