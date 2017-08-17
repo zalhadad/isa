@@ -19,4 +19,4 @@ RESTPLUS_TOKEN_EXPIRE = 3600
 #DATABASE = 'postgres:///stat'
 
 # via TCP socket
-DATABASE = "postgres://isa:pass@localhost/isa"
+DATABASE = "postgres://isa:pass@db/isa"
