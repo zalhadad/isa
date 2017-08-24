@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-import json
-
 from isa2api.database import db, where, select
 
 

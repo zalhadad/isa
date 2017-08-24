@@ -31,6 +31,25 @@ filter_arguments.add_argument(
     'called', type=str, required=False, help='Called number')
 
 
+stat_args = token_arguments.copy()
+stat_args.add_argument(
+    'server', type=int, required=True, default=-1, help='Server id')
+stat_args.add_argument(
+    'fromDate', type=str, required=False, default=yesterday.isoformat(), help='Iso format')
+stat_args.add_argument(
+    'toDate', type=str, required=False, default=date.today().isoformat(), help='Iso format')
+
+stat_pages_args = stat_args.copy()
+stat_pages_args.add_argument(
+    'page', type=int, required=False, default=1, help='Page number')
+stat_pages_args.add_argument('per_page', type=int, required=False, choices=[10, 20, 30, 40, 50, 100],
+                             default=10, help='Results per page {error_msg}')
+stat_pages_args.add_argument('sort', type=str, required=False, default='count',
+                             help='column to order by')
+stat_pages_args.add_argument('order', type=str, required=False, default='desc', choices=[
+    'asc', 'desc'], help='order direction')
+
+
 session_arguments = filter_arguments.copy()
 session_arguments.add_argument(
     'page', type=int, required=False, default=1, help='Page number')

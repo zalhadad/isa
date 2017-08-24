@@ -16,12 +16,12 @@ def estimate(q, p=None):
 
 
 def where(p, t=None):
-    sql = " WHERE server = %(server)s AND {}timestamp::date between %(fromDate)s::date AND %(toDate)s::date AND {}timestamp between %(fromDate)s AND %(toDate)s "
-    if p.id != None:
+    sql = " WHERE server = %(server)s AND ( {}timestamp::date between %(fromDate)s::date AND %(toDate)s::date )  AND ( {}timestamp between %(fromDate)s AND %(toDate)s ) "
+    if hasattr(p, 'id') and p.id != None:
         sql += ' AND id = %(id)s '
-    if p.caller != None:
+    if hasattr(p, 'caller') and p.caller != None:
         sql += ' AND caller=%(caller)s '
-    if p.called != None:
+    if hasattr(p, 'called') and p.called != None:
         sql += ' AND called=%(called)s '
     if not t is None:
         t = t + '.'
@@ -29,3 +29,10 @@ def where(p, t=None):
         t = ''
     sql = sql.format(t, t)
     return sql
+
+
+def types(t):
+    return select("""select t.typname as name, array_agg(enumlabel) as value from pg_type t    join pg_enum e on t.oid=e.enumtypid  
+                    join pg_catalog.pg_namespace n ON n.oid=t.typnamespace where t.typname=%(t)s
+        group by name
+                 """, {"t": t})

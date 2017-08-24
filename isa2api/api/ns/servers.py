@@ -1,32 +1,25 @@
 import logging
-from flask import make_response,abort
-from flask_restplus import Resource
+from flask import make_response, abort
+from flask_restplus import Resource, reqparse
 from isa2api.api.serializers import *
-from isa2api.api.parsers import login_arguments,token_arguments
+from isa2api.api.parsers import login_arguments, token_arguments
 from isa2api.api.restplus import api
-from isa2api.business.users import Users 
+from isa2api.business.servers import Servers
 log = logging.getLogger(__name__)
 
 
+ns = api.namespace('servers', description='servers list')
+parser = reqparse.RequestParser()
+parser.add_argument('service', type=int, required=True,
+                    help='service id should be in Integer')
 
-ns = api.namespace('servers', description='sessions related informations')
 
-user = Users()
-@ns.route("/me")
+@ns.route("/")
 @ns.expect(token_arguments)
-class Me(Resource):
-    """
-     decode token then send user
-    """
-    @api.response(200, 'valid token and not expired')
-    def get(self):
-        return user.decodeToken() 
-
-@ns.route('/authenticate')
-class Auth(Resource):
+@ns.expect(parser)
+class ServersCtrl(Resource):
     @api.expect(login_arguments)
-    def post(self):
-        args = login_arguments.parse_args()
-        token = user.login(args)
-        if not token:
-            return make_response("{'message': 'username / password error'}",403)
+    def get(self):
+        args = parser.parse_args()
+        s = Servers()
+        return s.get(args)

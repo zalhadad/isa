@@ -18,8 +18,8 @@ pagination = api.model('A page of results', {
     'total': fields.Integer(description='Total number of items'),
 })
 
-page_of_sessions = api.inherit('Page of sessions', pagination, {
-    'sessions': fields.List(fields.Nested(session))
+page_of_sessions = api.inherit('Page of data', pagination, {
+    'data': fields.List(fields.Nested(session))
 })
 
 node = api.model('Node', {

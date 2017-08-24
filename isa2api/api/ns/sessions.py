@@ -27,7 +27,7 @@ class SessionsCtrl(Resource):
                'pages': -(-sessions.total // args.per_page),
                'per_page': args.per_page,
                'total': sessions.total,
-               'sessions': sessions.get()
+               'data': sessions.get()
                }
         return out
 
